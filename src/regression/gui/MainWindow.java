@@ -480,8 +480,10 @@ public class MainWindow extends javax.swing.JFrame {
             GenerateData generate = new GenerateData();
             //file = new File(System.getProperty("user.dir") + "\\src\\regression\\data\\excelLogistic.xlsx");
             generate.readExcelDataSet(file);
+            generate.createWekaFile(file);
             LogisticRegressionCorrect regression = new LogisticRegressionCorrect(1);
             regression.logistic(generate.getInstances(), generate.getInstances(), result);
+            regression.weka();
             RegressionChart chart;
 
             chart = new RegressionChart(regression.getFinalPoints(), generate.getInstances());
@@ -492,6 +494,8 @@ public class MainWindow extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidFormatException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
 

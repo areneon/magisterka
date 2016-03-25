@@ -5,8 +5,11 @@
  */
 package regression.logisticRegression;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +18,10 @@ import java.util.List;
 import java.util.Scanner;
 import javax.swing.JTextArea;
 import regression.Point;
+import weka.classifiers.Evaluation;
+import weka.classifiers.functions.Logistic;
+import weka.core.FastVector;
+import weka.core.Instances;
 
 /**
  *
@@ -155,5 +162,39 @@ public class LogisticRegressionCorrect {
 			System.out.println("iteration: " + n + " " + Arrays.toString(weights) + " mle: " + lik);
 		}
 	}
+        
+        public void weka() throws FileNotFoundException, IOException, Exception{
+        Logistic logistic = new Logistic();
+         BufferedReader reader = new BufferedReader(
+                              new FileReader("weka.arff"));
+        Instances instances = new Instances(reader);
+        instances.setClassIndex(instances.numAttributes()-1);
+        String[] options = new String[4];
+        options[0]="-R";
+       
+        options[1]="-8";
+        options[2]="-M";
+        options[3]="-1";
+        logistic.setOptions(options);
+        logistic.buildClassifier(instances);
+        for(int i=0;i<instances.numInstances();i++){
+            weka.core.Instance inst = instances.instance(i);
+            System.out.println(inst.attribute(0) + "->"+ logistic.classifyInstance(instances.instance(i)));
+        }
+        
+        System.out.println(logistic.getRevision());
+
+ // evaluate classifier and print some statistics
+    Evaluation eval = new Evaluation(instances);
+    eval.evaluateModel(logistic, instances);
+   FastVector pred = eval.predictions();
+         
+   for (int i=0; i< eval.predictions().size();i++ ){
+  
+   }
+    System.out.println(eval.toSummaryString("\nResults\n======\n", false));
+        }
+        
+       
 }
      

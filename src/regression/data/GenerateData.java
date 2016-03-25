@@ -8,7 +8,9 @@ package regression.data;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -107,7 +109,6 @@ public class GenerateData {
 //        }
 //
 //    }
-
     /**
      * Read data from excel
      *
@@ -182,4 +183,33 @@ public class GenerateData {
 //            }
 
     //}
+    public void createWekaFile(File f) throws FileNotFoundException, IOException, InvalidFormatException {
+        FileInputStream excelFile = new FileInputStream(f);
+        File wekaFile = new File("weka.arff");
+        XSSFWorkbook workbook = new XSSFWorkbook(f);
+        XSSFSheet firstSheet = workbook.getSheetAt(0);
+        Iterator<Row> rowIterator = firstSheet.iterator();
+        PrintWriter writer = new PrintWriter(wekaFile);
+        writer.println("@RELATION logistic");
+        writer.println("@ATTRIBUTE x NUMERIC");
+        writer.println("@ATTRIBUTE class {1,0}");
+        writer.println("@DATA");
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Cell firstCell = row.getCell(row.getFirstCellNum());
+            Cell secondCell = row.getCell(row.getFirstCellNum() + 1);
+
+            if (firstCell.getCellType() == Cell.CELL_TYPE_NUMERIC && secondCell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                try {
+                    writer.println(firstCell.getNumericCellValue() + "," + (int)secondCell.getNumericCellValue());
+                } catch (Exception e) {
+                    System.err.println("Cannot convert data in row: " + row.getRowNum());
+                }
+            }
+
+        }
+        writer.close();
+        this.numberOfInstances = points.size();
+
+    }
 }
