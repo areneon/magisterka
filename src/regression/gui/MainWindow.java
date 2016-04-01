@@ -474,7 +474,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void logisticRegressionStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logisticRegressionStartActionPerformed
         // TODO add your handling code here:
-        result.setText("obliczanie...");
+        result.setText("obliczanie..."+"\n");
 
         try {
             GenerateData generate = new GenerateData();
@@ -483,7 +483,7 @@ public class MainWindow extends javax.swing.JFrame {
             generate.createWekaFile(file);
             LogisticRegressionCorrect regression = new LogisticRegressionCorrect(1);
             regression.logistic(generate.getInstances(), generate.getInstances(), result);
-            regression.weka();
+            regression.weka(result);
             RegressionChart chart;
 
             chart = new RegressionChart(regression.getFinalPoints(), generate.getInstances());

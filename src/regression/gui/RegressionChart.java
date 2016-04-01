@@ -93,20 +93,43 @@ public class RegressionChart extends javax.swing.JFrame {
     private XYDataset createLogisticDataset(List<Point> countedPoints, List<Point> points) {
 
         final XYSeries series1 = new XYSeries("Funkcja regresji");
-        for (Iterator<Point> it = countedPoints.iterator(); it.hasNext();) {
-            Point point = it.next();
-            series1.add(point.getX(), point.getY());
-        }
-        final XYSeries series2 = new XYSeries("Punkty Klasy A");
-         final XYSeries series3 = new XYSeries("Punkty Klasy B");
-       int pointToGetFuncton =  countedPoints.size()/2;
+        //stara
+//        for (Iterator<Point> it = countedPoints.iterator(); it.hasNext();) {
+//            Point point = it.next();
+//            series1.add(point.getX(), point.getY());
+//        }
+//           series1.add(0, 0.5);
+//            series1.add( lastPoint , logisticPoint);
+//        final XYSeries series2 = new XYSeries("Punkty Klasy A");
+//         final XYSeries series3 = new XYSeries("Punkty Klasy B");
+//       int pointToGetFuncton =  countedPoints.size()/2;
+//        for (Iterator<Point> it = points.iterator(); it.hasNext();) {
+//            Point point = it.next();
+//            if(checkIfPointAboveLogistic(countedPoints.get(pointToGetFuncton),point)){
+//            series2.add(point.getX(), point.getY());
+//            }else{
+//            series3.add(point.getX(), point.getY());
+//            }
+//            
+//        }
+        //nowa
+       
+        Double lastPoint=  points.get( points.size()-1).getX();
+        Double logisticPoint =0.5;   
+            series1.add(0, 0.5);
+            series1.add( lastPoint , logisticPoint);
+        final XYSeries series2 = new XYSeries("Punkty Klasy 1");
+         final XYSeries series3 = new XYSeries("Punkty Klasy 0");
+      int ite=0;
         for (Iterator<Point> it = points.iterator(); it.hasNext();) {
+            
             Point point = it.next();
-            if(checkIfPointAboveLogistic(countedPoints.get(pointToGetFuncton),point)){
+            if(checkIfPointAboveLogistic(new Point(0.0, 0.5),countedPoints.get(ite))){
             series2.add(point.getX(), point.getY());
             }else{
             series3.add(point.getX(), point.getY());
             }
+            ite++;
             
         }
 
@@ -147,8 +170,8 @@ public class RegressionChart extends javax.swing.JFrame {
         plot.setRangeGridlinePaint(Color.white);
 
         final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesShape(0, ShapeUtilities.createRegularCross(1, 1));
-        renderer.setSeriesShape(2, ShapeUtilities.createRegularCross(1, 1));
+        renderer.setSeriesShape(0, ShapeUtilities.createRegularCross(3, 3));
+        renderer.setSeriesShape(2, ShapeUtilities.createRegularCross(3, 3));
         renderer.setSeriesLinesVisible(0, false);
 
         renderer.setSeriesShapesVisible(1, false);

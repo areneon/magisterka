@@ -55,7 +55,7 @@ public class LogisticRegressionCorrect {
     private int ITERATIONS =3000;
 
     public LogisticRegressionCorrect(int n) {
-        this.rate = 0.0001;
+        this.rate = 1.0E-8;
         weights = new double[n];
     }
 
@@ -75,7 +75,7 @@ public class LogisticRegressionCorrect {
         train(instancesFinal);
          for (Iterator<Instance> iterator = instancesFinal.iterator(); iterator.hasNext();) {
                 Instance next = iterator.next();
-            out.append("dla danego x: " + next.getX()[0] + " prawdopodobieństwo wynosi: " + classify2(next.getX()) + "\n");
+            //out.append("dla danego x: " + next.getX()[0] + " prawdopodobieństwo wynosi: " + classify2(next.getX()) + "\n");
             }
         
     }
@@ -97,7 +97,7 @@ public class LogisticRegressionCorrect {
              writer.print(weights[i] + "?");
         }
          double y = sigmoid(logit);
-           this.finalPoints.add(new Point(x[0], y));
+          // this.finalPoints.add(new Point(x[0], y));
         return y;
     }
 
@@ -124,7 +124,7 @@ public class LogisticRegressionCorrect {
             for (int i = 0; i < weights.size(); i++) {
                 logit += weights.get(i) * next;
             }
-            output.append("dla danego x: " + next + " prawdopodobieństwo wynosi: " + sigmoid(logit) + "\n");
+          //  output.append("dla danego x: " + next + " prawdopodobieństwo wynosi: " + sigmoid(logit) + "\n");
         }
 
     }
@@ -159,11 +159,12 @@ public class LogisticRegressionCorrect {
 				// not necessary for learning
 				lik += label * Math.log(classify(x)) + (1-label) * Math.log(1- classify(x));
 			}
-			System.out.println("iteration: " + n + " " + Arrays.toString(weights) + " mle: " + lik);
+			//System.out.println("iteration: " + n + " " + Arrays.toString(weights) + " mle: " + lik);
 		}
 	}
         
-        public void weka() throws FileNotFoundException, IOException, Exception{
+        public void weka(JTextArea output) throws FileNotFoundException, IOException, Exception{
+            this.finalPoints = new ArrayList<>();
         Logistic logistic = new Logistic();
          BufferedReader reader = new BufferedReader(
                               new FileReader("weka.arff"));
@@ -172,20 +173,38 @@ public class LogisticRegressionCorrect {
         String[] options = new String[4];
         options[0]="-R";
        
-        options[1]="-8";
+        options[1]="1.0E-8";
         options[2]="-M";
         options[3]="-1";
+        
         logistic.setOptions(options);
+      
         logistic.buildClassifier(instances);
         for(int i=0;i<instances.numInstances();i++){
             weka.core.Instance inst = instances.instance(i);
-            System.out.println(inst.attribute(0) + "->"+ logistic.classifyInstance(instances.instance(i)));
+            Double classifiedClass = 1.0;
+            if(logistic.classifyInstance(inst)==1.0){
+                classifiedClass = 0.0;
+            }
+          
+          System.out.println("classify: " +inst.attribute(0)+"|"+inst.value(0)+ "->"+ classifiedClass);
+            double[] distributions = logistic.distributionForInstance(inst);
+            output.append("Dla x= "+inst.value(0)+" prawdopodobieństwo wystąpnienia zdarzenia wynosi: "+distributions[0]+" zatem należy on do klasy: "+classifiedClass+"\n");
+             this.finalPoints.add(new Point(inst.value(0), classifiedClass));
+           for(int j=0;j<distributions.length;j++){
+             System.out.println("distribution: " +inst.value(0) + "->"+ distributions[j]); 
+            
+          
+           }
+            
+           
         }
-        
-        System.out.println(logistic.getRevision());
+         
+      
 
  // evaluate classifier and print some statistics
     Evaluation eval = new Evaluation(instances);
+   
     eval.evaluateModel(logistic, instances);
    FastVector pred = eval.predictions();
          

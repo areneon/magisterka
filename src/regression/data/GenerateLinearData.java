@@ -55,7 +55,7 @@ public class GenerateLinearData {
             Row row = rowIterator.next();
             Cell firstCell = row.getCell(row.getFirstCellNum());
             Cell secondCell = row.getCell(row.getFirstCellNum() + 1);
-
+            System.out.println(firstCell.getCellType() +" "+ secondCell.getCellType());
             if (firstCell.getCellType() == Cell.CELL_TYPE_NUMERIC && secondCell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
                 try {
                     this.points.add(new Point(firstCell.getNumericCellValue(), secondCell.getNumericCellValue()));
