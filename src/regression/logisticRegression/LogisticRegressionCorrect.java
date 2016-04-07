@@ -35,6 +35,15 @@ public class LogisticRegressionCorrect {
     private double rate;
 
     private List<Point> finalPoints = new ArrayList<>();
+    private List<Point> finalProbPoints = new ArrayList<>();
+    private Logistic logistic = new Logistic();
+    public List<Point> getFinalProbPoints() {
+        return finalProbPoints;
+    }
+
+    public void setFinalProbPoints(List<Point> finalProbPoints) {
+        this.finalProbPoints = finalProbPoints;
+    }
 
     public List<Point> getFinalPoints() {
         return finalPoints;
@@ -165,14 +174,14 @@ public class LogisticRegressionCorrect {
         
         public void weka(JTextArea output) throws FileNotFoundException, IOException, Exception{
             this.finalPoints = new ArrayList<>();
-        Logistic logistic = new Logistic();
+       
          BufferedReader reader = new BufferedReader(
                               new FileReader("weka.arff"));
         Instances instances = new Instances(reader);
         instances.setClassIndex(instances.numAttributes()-1);
         String[] options = new String[4];
         options[0]="-R";
-       
+      
         options[1]="1.0E-8";
         options[2]="-M";
         options[3]="-1";
@@ -180,6 +189,7 @@ public class LogisticRegressionCorrect {
         logistic.setOptions(options);
       
         logistic.buildClassifier(instances);
+        
         for(int i=0;i<instances.numInstances();i++){
             weka.core.Instance inst = instances.instance(i);
             Double classifiedClass = 1.0;
@@ -191,6 +201,7 @@ public class LogisticRegressionCorrect {
             double[] distributions = logistic.distributionForInstance(inst);
             output.append("Dla x= "+inst.value(0)+" prawdopodobieństwo wystąpnienia zdarzenia wynosi: "+distributions[0]+" zatem należy on do klasy: "+classifiedClass+"\n");
              this.finalPoints.add(new Point(inst.value(0), classifiedClass));
+             this.finalProbPoints.add(new Point(inst.value(0), distributions[0]));
            for(int j=0;j<distributions.length;j++){
              System.out.println("distribution: " +inst.value(0) + "->"+ distributions[j]); 
             
@@ -213,7 +224,22 @@ public class LogisticRegressionCorrect {
    }
     System.out.println(eval.toSummaryString("\nResults\n======\n", false));
         }
-        
-       
+      
+      public void  singleTest(Instances instances, JTextArea output) throws Exception{
+      
+      
+          
+          for(int i=0;i<instances.numInstances();i++){
+            weka.core.Instance inst = instances.instance(i);
+          
+            Double classifiedClass = 1.0;
+                   if(logistic.classifyInstance(inst)==1.0){
+                classifiedClass = 0.0;
+            }
+                System.out.println("classify: " +inst.attribute(0)+"|"+inst.value(0)+ "->"+ classifiedClass);
+            double[] distributions = logistic.distributionForInstance(inst);
+            output.append("Dla x= "+inst.value(0)+" prawdopodobieństwo wystąpnienia zdarzenia wynosi: "+distributions[0]+" zatem należy on do klasy: "+classifiedClass+"\n");
+          }
+      } 
 }
      

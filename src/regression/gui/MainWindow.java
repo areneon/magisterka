@@ -5,13 +5,29 @@
  */
 package regression.gui;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jfree.ui.RefineryUtilities;
 import regression.Function;
 import regression.data.GenerateData;
@@ -19,6 +35,7 @@ import regression.data.GenerateLinearData;
 import regression.linearRegression.LinearRegression;
 import regression.logisticRegression.LogisticRegression;
 import regression.logisticRegression.LogisticRegressionCorrect;
+import weka.core.Instances;
 
 /**
  *
@@ -30,7 +47,7 @@ public class MainWindow extends javax.swing.JFrame {
     File testFile;
     File testLogisticFile;
     Boolean classify;
-
+LogisticRegressionCorrect regression = new LogisticRegressionCorrect(1);
     /**
      * Creates new form MainWindow
      */
@@ -481,12 +498,12 @@ public class MainWindow extends javax.swing.JFrame {
             //file = new File(System.getProperty("user.dir") + "\\src\\regression\\data\\excelLogistic.xlsx");
             generate.readExcelDataSet(file);
             generate.createWekaFile(file);
-            LogisticRegressionCorrect regression = new LogisticRegressionCorrect(1);
+            
             regression.logistic(generate.getInstances(), generate.getInstances(), result);
             regression.weka(result);
             RegressionChart chart;
 
-            chart = new RegressionChart(regression.getFinalPoints(), generate.getInstances());
+            chart = new RegressionChart(regression.getFinalPoints(), generate.getInstances(),regression.getFinalProbPoints() );
             chart.pack();
             chart.setVisible(true);
         } catch (FileNotFoundException ex) {
@@ -516,6 +533,7 @@ public class MainWindow extends javax.swing.JFrame {
         GenerateLinearData generate = new GenerateLinearData();
 
         try {
+            
             generate.testSingleData(Double.parseDouble(xTestValue.getText()), testTextArea);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
@@ -557,11 +575,33 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_testFileChooserActionPerformed
 
     private void testSingleLogisticButtinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testSingleLogisticButtinActionPerformed
-        // TODO add your handling code here:
+      
+        List<Double> xList = new ArrayList<>();
+        xList.add(Double.parseDouble(XlogisticTestVariableTextField.getText()));
+        createExcelFile(xList);
+       File fileExcel = new File(System.getProperty("user.dir") +"\\single.xlsx");
+       createWekaFile("wekaSingle.arff", fileExcel);
+            BufferedReader reader;
+        try {
+            reader = new BufferedReader(
+                    new FileReader("wekaSingle.arff"));
+              Instances instances = new Instances(reader);
+        instances.setClassIndex(instances.numAttributes()-1);
+            regression.singleTest(instances, testLogisticTestArea);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+      
+        
     }//GEN-LAST:event_testSingleLogisticButtinActionPerformed
 
     private void testFromFileLinearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testFromFileLinearButtonActionPerformed
         testFileChooserLogisticFrame.setVisible(true);
+       
     }//GEN-LAST:event_testFromFileLinearButtonActionPerformed
 
     private void TestLogisticFileChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TestLogisticFileChooserActionPerformed
@@ -570,12 +610,22 @@ public class MainWindow extends javax.swing.JFrame {
         if (command.equals(JFileChooser.APPROVE_SELECTION)) {
             testLogisticFile = theFileChooser.getSelectedFile();
             testFileChooserLogisticFrame.setVisible(false);
-            LogisticRegression regression = new LogisticRegression(1);
-            try {
-                regression.classifyToTestFromFile(testLogisticTestArea, testLogisticFile);
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            String newWekaFile="logosticWekaTestFile.arff";
+        createWekaFile(newWekaFile, testLogisticFile);
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(
+                    new FileReader(newWekaFile));
+              Instances instances = new Instances(reader);
+        instances.setClassIndex(instances.numAttributes()-1);
+            regression.singleTest(instances, testLogisticTestArea);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         } else if (command.equals(JFileChooser.CANCEL_SELECTION)) {
             testFileChooserLogisticFrame.setVisible(false);
@@ -628,7 +678,69 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
     }
+    
+    void createWekaFile(String pathToNewWekaFile, File fileExcel){
+        
+          try {
+             
+        File wekaFile = new File(pathToNewWekaFile);
+        XSSFWorkbook workbook = new XSSFWorkbook(fileExcel);
+        XSSFSheet firstSheet = workbook.getSheetAt(0);
+        Iterator<Row> rowIterator = firstSheet.iterator();
+        PrintWriter writer = new PrintWriter(wekaFile);
+        writer.println("@RELATION logistic");
+        writer.println("@ATTRIBUTE x NUMERIC");
+        writer.println("@ATTRIBUTE class {1,0}");
+        writer.println("@DATA");
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Cell firstCell = row.getCell(row.getFirstCellNum());
+            Cell secondCell = row.getCell(row.getFirstCellNum() + 1);
 
+            if (firstCell.getCellType() == Cell.CELL_TYPE_NUMERIC && secondCell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                try {
+                    writer.println(firstCell.getNumericCellValue() + "," + (int)secondCell.getNumericCellValue());
+                } catch (Exception e) {
+                    System.err.println("Cannot convert data in row: " + row.getRowNum());
+                }
+            }
+
+        }
+        writer.close();
+        
+     
+        } catch (Exception ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    void createExcelFile(List<Double> xes){
+    try {
+            String filename = "single.xlsx" ;
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("FirstSheet");  
+            int rownum=0;
+          for (Iterator<Double> iterator = xes.iterator(); iterator.hasNext();) {
+            
+            Double next = iterator.next();
+            XSSFRow row = sheet.createRow(rownum);
+            row.createCell(0).setCellValue(next);
+            row.createCell(1).setCellValue(0.0);
+             rownum++;
+        }
+ 
+            
+           
+
+            FileOutputStream fileOut = new FileOutputStream(filename);
+            workbook.write(fileOut);
+            fileOut.close();
+           
+        System.out.println("Stworzono");
+        } catch ( Exception ex ) {
+            System.out.println(ex);
+        } 
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton LogisticTestButton;
     private javax.swing.JFrame LogisticTestFrame;

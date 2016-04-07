@@ -7,6 +7,7 @@ package regression.gui;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -43,9 +44,9 @@ public class RegressionChart extends javax.swing.JFrame {
     
     
 
-    public RegressionChart(List<Point> countedPoints, List<Point> points) {
+    public RegressionChart(List<Point> countedPoints, List<Point> points, List<Point> finalProbPoints) {
 
-        final XYDataset dataset = createLogisticDataset(countedPoints, points);
+        final XYDataset dataset = createLogisticDataset(countedPoints, points, finalProbPoints );
         final JFreeChart chart = createChart(dataset);
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
@@ -90,19 +91,19 @@ public class RegressionChart extends javax.swing.JFrame {
      *
      * @return a sample dataset.
      */
-    private XYDataset createLogisticDataset(List<Point> countedPoints, List<Point> points) {
+    private XYDataset createLogisticDataset(List<Point> countedPoints, List<Point> points, List<Point> finalProbPoints) {
 
         final XYSeries series1 = new XYSeries("Funkcja regresji");
+         final XYSeries series0 = new XYSeries("Funkcja podzialu y=0,5");
         //stara
-//        for (Iterator<Point> it = countedPoints.iterator(); it.hasNext();) {
-//            Point point = it.next();
-//            series1.add(point.getX(), point.getY());
-//        }
-//           series1.add(0, 0.5);
-//            series1.add( lastPoint , logisticPoint);
+        for (Iterator<Point> it = finalProbPoints.iterator(); it.hasNext();) {
+            Point point = it.next();
+            series1.add(point.getX(), point.getY());
+        }
+         
 //        final XYSeries series2 = new XYSeries("Punkty Klasy A");
 //         final XYSeries series3 = new XYSeries("Punkty Klasy B");
-//       int pointToGetFuncton =  countedPoints.size()/2;
+       int pointToGetFuncton =  countedPoints.size()/2;
 //        for (Iterator<Point> it = points.iterator(); it.hasNext();) {
 //            Point point = it.next();
 //            if(checkIfPointAboveLogistic(countedPoints.get(pointToGetFuncton),point)){
@@ -113,30 +114,39 @@ public class RegressionChart extends javax.swing.JFrame {
 //            
 //        }
         //nowa
-       
-        Double lastPoint=  points.get( points.size()-1).getX();
-        Double logisticPoint =0.5;   
-            series1.add(0, 0.5);
-            series1.add( lastPoint , logisticPoint);
+      
         final XYSeries series2 = new XYSeries("Punkty Klasy 1");
          final XYSeries series3 = new XYSeries("Punkty Klasy 0");
       int ite=0;
         for (Iterator<Point> it = points.iterator(); it.hasNext();) {
             
             Point point = it.next();
-            if(checkIfPointAboveLogistic(new Point(0.0, 0.5),countedPoints.get(ite))){
+                if(countedPoints.get(ite).getY()>0.5){
             series2.add(point.getX(), point.getY());
             }else{
-            series3.add(point.getX(), point.getY());
-            }
+           series3.add(point.getX(), point.getY());
+          }
+            
+            
+//            if(checkIfPointAboveLogistic(new Point(0.0, 0.5),countedPoints.get(ite))){
+//            series2.add(point.getX(), point.getY());
+//            }else{
+//            series3.add(point.getX(), point.getY());
+//            }
             ite++;
             
         }
-
+ Collections.sort(points,new PointXComparator());
+       
+        Double lastPoint=  points.get( points.size()-1).getX();
+        Double logisticPoint =0.5;   
+            series0.add(0, logisticPoint);
+            series0.add( lastPoint , logisticPoint);
         final XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(series2);
         dataset.addSeries(series1);
         dataset.addSeries(series3);
+        dataset.addSeries(series0);
 
         return dataset;
 
@@ -240,4 +250,7 @@ public class RegressionChart extends javax.swing.JFrame {
     private double logOfX(Double x, Double num) {
         return Math.log(num) / Math.log(x);
     }
+    
+    
 }
+
